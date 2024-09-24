@@ -7,397 +7,585 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <style>
         body {
-            margin: 0;
-            padding: 20px;
             font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        #controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .control-group h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+        #restartBtn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #restartBtn:hover {
+            background-color: #2980b9;
         }
         #canvas-container {
             width: 100%;
             text-align: center;
         }
         canvas {
-            border: 1px solid #000;
             max-width: 100%;
-            margin: 0 auto;
-        }
-        #controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-        }
-        input, button {
-            margin-top: 5px;
-        }
-        #restartBtn {
-            grid-column: 1 / -1;
-            padding: 10px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        #restartBtn:hover {
-            background-color: #45a049;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
     <h1>ketteQ PolymatiQ Solver</h1>
-<div id="controls">
-    <div class="control-group">
-        <h3>Board Settings</h3>
-        <div class="input-group">
-            <label for="boardHeightInput">Board Height:</label>
-            <input type="number" id="boardHeightInput" value="800" min="400" max="2000" step="50">
+    <div id="controls">
+        <div class="control-group">
+            <h3>Board Settings</h3>
+            <div class="input-group">
+                <label for="boardHeightInput">Board Height:</label>
+                <input type="number" id="boardHeightInput" value="800" min="400" max="2000" step="50">
+            </div>
+            <div class="input-group">
+                <label for="levelsInput">Levels:</label>
+                <input type="number" id="levelsInput" value="15" min="1" max="50">
+            </div>
+            <div class="input-group">
+                <label for="pegSpacingInput">Peg Spacing:</label>
+                <input type="number" id="pegSpacingInput" value="60" min="20" max="100" step="1">
+            </div>
+            <div class="input-group">
+                <label for="chuteHeightInput">Chute Height (%):</label>
+                <input type="number" id="chuteHeightInput" value="40" min="10" max="80" step="1">
+            </div>
+            <div class="input-group">
+                <label for="spaceBeforeChutesInput">Space Before Chutes:</label>
+                <input type="number" id="spaceBeforeChutesInput" value="50" min="0" max="200" step="10">
+            </div>
         </div>
-        <div class="input-group">
-            <label for="levelsInput">Levels:</label>
-            <input type="number" id="levelsInput" value="15" min="1" max="50">
+        
+        <div class="control-group">
+            <h3>Ball Settings</h3>
+            <div class="input-group">
+                <label for="ballsInput">Number of Balls:</label>
+                <input type="number" id="ballsInput" value="1000" min="1" max="2000">
+            </div>
+            <div class="input-group">
+                <label for="ballRadiusInput">Ball Radius:</label>
+                <input type="number" id="ballRadiusInput" value="7" min="1" max="20" step="0.5">
+            </div>
+            <div class="input-group">
+                <label for="massInput">Ball Mass:</label>
+                <input type="number" id="massInput" value="1" min="0.1" max="10" step="0.1">
+            </div>
         </div>
-        <div class="input-group">
-            <label for="pegSpacingInput">Peg Spacing:</label>
-            <input type="number" id="pegSpacingInput" value="60" min="20" max="100" step="1">
+        
+        <div class="control-group">
+            <h3>Physics Settings</h3>
+            <div class="input-group">
+                <label for="gravityInput">Gravity:</label>
+                <input type="number" id="gravityInput" value="0.5" min="0" max="2" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="intervalInput">Drop Interval (ms):</label>
+                <input type="number" id="intervalInput" value="50" min="1" max="1000">
+            </div>
         </div>
-        <div class="input-group">
-            <label for="chuteHeightInput">Chute Height (%):</label>
-            <input type="number" id="chuteHeightInput" value="40" min="10" max="80" step="1">
-        </div>
-        <div class="input-group">
-            <label for="spaceBeforeChutesInput">Space Before Chutes:</label>
-            <input type="number" id="spaceBeforeChutesInput" value="50" min="0" max="200" step="10">
+        
+        <div class="control-group">
+            <h3>Visual Options</h3>
+            <div class="input-group">
+                <label for="pegArrangementSelect">Peg Arrangement:</label>
+                <select id="pegArrangementSelect">
+                    <option value="triangle">Triangle</option>
+                    <option value="circle">Circle</option>
+                    <option value="diamond">Diamond</option>
+                    <option value="square">Square</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>
+                    <input type="checkbox" id="jigglePegs">
+                    Jiggle Pegs
+                </label>
+            </div>
+            <div class="input-group">
+                <label>
+                    <input type="checkbox" id="useMultiColorBalls">
+                    Use Multi-Color Balls
+                </label>
+            </div>
         </div>
     </div>
-    
-    <div class="control-group">
-        <h3>Ball Settings</h3>
-        <div class="input-group">
-            <label for="ballsInput">Number of Balls:</label>
-            <input type="number" id="ballsInput" value="1000" min="1" max="2000">
-        </div>
-        <div class="input-group">
-            <label for="ballRadiusInput">Ball Radius:</label>
-            <input type="number" id="ballRadiusInput" value="7" min="1" max="20" step="0.5">
-        </div>
-        <div class="input-group">
-            <label for="massInput">Ball Mass:</label>
-            <input type="number" id="massInput" value="1" min="0.1" max="10" step="0.1">
-        </div>
-    </div>
-    
-    <div class="control-group">
-        <h3>Physics Settings</h3>
-        <div class="input-group">
-            <label for="gravityInput">Gravity:</label>
-            <input type="number" id="gravityInput" value="0.5" min="0" max="2" step="0.01">
-        </div>
-        <div class="input-group">
-            <label for="intervalInput">Drop Interval (ms):</label>
-            <input type="number" id="intervalInput" value="50" min="1" max="1000">
-        </div>
-    </div>
-    
-<div class="control-group">
-    <h3>Additional Options</h3>
-    <div class="input-group checkbox-group">
-        <label for="jigglePegs">
-            <input type="checkbox" id="jigglePegs">
-            Jiggle Pegs and Press Restart Simulation
-        </label>
-    </div>
-</div>
     
     <button id="restartBtn">Restart Simulation</button>
-</div>
+    
     <div id="canvas-container"></div>
+
     <script>
         // Matter.js module aliases
-        const Engine = Matter.Engine,
-              Render = Matter.Render,
-              Runner = Matter.Runner,
-              Bodies = Matter.Bodies,
-              Composite = Matter.Composite,
-              Events = Matter.Events;
+// Matter.js module aliases
+const Engine = Matter.Engine,
+      Render = Matter.Render,
+      Runner = Matter.Runner,
+      Bodies = Matter.Bodies,
+      Composite = Matter.Composite,
+      Events = Matter.Events;
 
-        let engine, world, render, runner;
-        let board;
-        let lastDropTime = 0;
+let engine, world, render, runner;
+let board;
+let lastDropTime = 0;
 
-        class GaltonBoard {
-			constructor(boardHeight, numLevels, numBalls, ballMass, gravity, dropInterval, chuteHeight, ballRadius, pegSpacing, spaceBeforeChutes) {
-				this.height = boardHeight;
-				this.numLevels = numLevels;
-				this.numBalls = numBalls;
-				this.ballMass = ballMass;
-				this.gravity = gravity;
-				this.dropInterval = dropInterval;
-				this.chuteHeight = chuteHeight;
-				this.ballRadius = ballRadius;
-				this.pegSpacing = pegSpacing;
-				this.spaceBeforeChutes = spaceBeforeChutes;
-				this.ballsDropped = 0;
-				this.calculateDimensions();
-				this.bins = new Array(this.numLevels + 1).fill(0);
-			}
-			
-			calculateDimensions() {
-				this.boardWidth = this.pegSpacing * (this.numLevels + 1);
-				this.topSpace = this.height * 0.1;
-				this.bottomSpace = this.height * (this.chuteHeight / 100);
-				this.chuteWidth = this.boardWidth / (this.numLevels + 1);
-				
-				const boardHeight = this.height - this.topSpace - this.bottomSpace - this.spaceBeforeChutes;
-				this.verticalSpacing = boardHeight / (this.numLevels - 1);
-			}
+class GaltonBoard {
+    constructor(boardHeight, numLevels, numBalls, ballMass, gravity, dropInterval, chuteHeight, ballRadius, pegSpacing, spaceBeforeChutes, useMultiColorBalls, pegArrangement, jigglePegs) {
+        this.height = boardHeight;
+        this.numLevels = numLevels;
+        this.numBalls = numBalls;
+        this.ballMass = ballMass;
+        this.gravity = gravity;
+        this.dropInterval = dropInterval;
+        this.chuteHeight = chuteHeight;
+        this.ballRadius = ballRadius;
+        this.pegSpacing = pegSpacing;
+        this.spaceBeforeChutes = spaceBeforeChutes;
+        this.useMultiColorBalls = useMultiColorBalls;
+        this.pegArrangement = pegArrangement;
+        this.jigglePegs = jigglePegs;
+        this.ballsDropped = 0;
+        this.calculateDimensions();
+        this.bins = new Array(this.numLevels + 1).fill(0);
+    }
+    
+    calculateDimensions() {
+        this.boardWidth = this.pegSpacing * (this.numLevels + 1);
+        this.topSpace = this.height * 0.1;
+        this.bottomSpace = this.height * (this.chuteHeight / 100);
+        this.chuteWidth = this.boardWidth / (this.numLevels + 1);
+        
+        const boardHeight = this.height - this.topSpace - this.bottomSpace - this.spaceBeforeChutes;
+        this.verticalSpacing = boardHeight / (this.numLevels - 1);
+    }
 
-			setupBoard() {
-					// Create walls
-					this.createWall(0, 0, 10, this.height);
-					this.createWall(this.boardWidth - 10, 0, 10, this.height);
-					this.createWall(0, this.height - 10, this.boardWidth, 10);
-			
-					// Create pegs
-					const pegRadius = 4.2;//this.ballRadius * 0.6;
-			
-					for (let i = 0; i < this.numLevels; i++) {
-						for (let j = 0; j <= i; j++) {
-							const x = this.boardWidth / 2 + (j - i / 2) * this.pegSpacing;
-							const y = this.topSpace + i * this.verticalSpacing;
-							this.createPeg(x, y, pegRadius);
-						}
-					}
-			
-					// Create chutes
-					const chuteY = this.height - this.bottomSpace;
-					for (let i = 0; i <= this.numLevels + 1; i++) {
-						const x = i * this.chuteWidth;
-						this.createWall(x, chuteY, 2, this.bottomSpace);
-					}
-				}
-						
-            setupBoardRandom() {
-				// Create walls
-				this.createWall(0, 0, 10, this.height);
-				this.createWall(this.boardWidth - 10, 0, 10, this.height);
-				this.createWall(0, this.height - 10, this.boardWidth, 10);
-			
-				// Create pegs
-				const pegRadius = 4.2;//this.ballRadius * 0.6;
-				const maxXOffset = this.pegSpacing * 0.3;  // Maximum allowed horizontal random offset (30% of peg spacing)
-				const maxYOffset = this.verticalSpacing * 0.3;  // Maximum allowed vertical random offset (30% of vertical spacing)
-			
-				for (let i = 0; i < this.numLevels; i++) {
-					for (let j = 0; j <= i; j++) {
-						// Base positions without randomness
-						const baseX = this.boardWidth / 2 + (j - i / 2) * this.pegSpacing;
-						const baseY = this.topSpace + i * this.verticalSpacing;
-						
-						// Add random offset within the defined bounds
-						const randomX = baseX + (Math.random() * 2 - 1) * maxXOffset;
-						const randomY = baseY + (Math.random() * 2 - 1) * maxYOffset;
-			
-						this.createPeg(randomX, randomY, pegRadius);
-					}
-				}
-			
-				// Create chutes
-				const chuteY = this.height - this.bottomSpace;
-				for (let i = 0; i <= this.numLevels + 1; i++) {
-					const x = i * this.chuteWidth;
-					this.createWall(x, chuteY, 2, this.bottomSpace);
-				}
-			}
+    setupBoard() {
+        // Create walls
+        this.createWall(0, 0, 10, this.height);
+        this.createWall(this.boardWidth - 10, 0, 10, this.height);
+        this.createWall(0, this.height - 10, this.boardWidth, 10);
 
-            createWall(x, y, width, height) {
-                const wall = Bodies.rectangle(x + width / 2, y + height / 2, width, height, { 
-                    isStatic: true,
-                    render: { fillStyle: '#222' }
-                });
-                Composite.add(world, wall);
+        // Get peg positions based on the selected arrangement
+        let pegPositions = this.getPegPositions();
+
+        // Apply jiggle if option is selected
+        if (this.jigglePegs) {
+            pegPositions = this.jigglePegPositions(pegPositions);
+        }
+
+        // Create pegs
+        this.createPegs(pegPositions);
+
+        // Create chutes
+        const chuteY = this.height - this.bottomSpace;
+        for (let i = 0; i <= this.numLevels + 1; i++) {
+            const x = i * this.chuteWidth;
+            this.createWall(x, chuteY, 2, this.bottomSpace);
+        }
+    }
+
+    getPegPositions() {
+        switch (this.pegArrangement) {
+            case 'triangle':
+                return this.getTrianglePegPositions();
+            case 'circle':
+                return this.getCirclePegPositions();
+            case 'diamond':
+                return this.getDiamondPegPositions();
+            case 'square':
+                return this.getSquarePegPositions();
+            default:
+                return this.getTrianglePegPositions();
+        }
+    }
+
+    jigglePegPositions(positions) {
+        const maxOffset = this.pegSpacing * 0.2; // 20% of peg spacing
+        return positions.map(pos => ({
+            x: pos.x + (Math.random() - 0.5) * maxOffset,
+            y: pos.y + (Math.random() - 0.5) * maxOffset
+        }));
+    }
+
+    createPegs(positions) {
+        const pegRadius = 4.2;
+        positions.forEach(pos => {
+            this.createPeg(pos.x, pos.y, pegRadius);
+        });
+    }
+
+    getTrianglePegPositions() {
+        let positions = [];
+        for (let i = 0; i < this.numLevels; i++) {
+            for (let j = 0; j <= i; j++) {
+                const x = this.boardWidth / 2 + (j - i / 2) * this.pegSpacing;
+                const y = this.topSpace + i * this.verticalSpacing;
+                positions.push({ x, y });
             }
+        }
+        return positions;
+    }
 
-            createPeg(x, y, radius) {
-                const peg = Bodies.circle(x, y, radius, { 
-                    isStatic: true,
-                    render: { fillStyle: '#222' }
-                });
-                Composite.add(world, peg);
-            }
+ getCirclePegPositions() {
+        let positions = [];
+        const centerX = this.boardWidth / 2;
+        const centerY = this.height / 2 - this.bottomSpace / 2;
+        const maxRadius = Math.min(this.boardWidth, this.height - this.bottomSpace - this.topSpace) / 2 * 0.8;
 
-			createBall() {
-				if (this.ballsDropped >= this.numBalls) return;
-		
-				const x = this.boardWidth / 2 + (Math.random() - 0.5) * 20;
-				const ball = Bodies.circle(x, 20, this.ballRadius, {
-					restitution: 0.5,
-					friction: 0.001,
-					frictionAir: 0.0001,
-					mass: this.ballMass,
-					render: {
-						fillStyle: '#ff8800',
-						strokeStyle: '#e67300',
-						lineWidth: 1,
-						sprite: {
-							texture: this.createBallTexture()
-						},
-						shadowColor: 'rgba(0, 0, 0, 0.5)',
-						shadowBlur: 10,
-						shadowOffsetX: 5,
-						shadowOffsetY: 5
-					}
-				});
-				Composite.add(world, ball);
-        		this.ballsDropped++;
-    		}
-    		
-    		createBallTexture() {
-				const canvas = document.createElement('canvas');
-				const size = this.ballRadius * 2;
-				canvas.width = size;
-				canvas.height = size;
-				const ctx = canvas.getContext('2d');
-		
-				// Create gradient
-				const gradient = ctx.createRadialGradient(size / 4, size / 4, 0, size / 2, size / 2, size / 2);
-				gradient.addColorStop(0, '#ffaa33');
-				gradient.addColorStop(1, '#ff8800');
-		
-				// Draw circle
-				ctx.beginPath();
-				ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
-				ctx.fillStyle = gradient;
-				ctx.fill();
-		
-				// Add highlight
-				ctx.beginPath();
-				ctx.arc(size / 4, size / 4, size / 6, 0, 2 * Math.PI);
-				ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-				ctx.fill();
-		
-				return canvas.toDataURL();
-			}
+        // Create the outline
+        const circumference = 2 * Math.PI * maxRadius;
+        const pegsInOutline = Math.floor(circumference / this.pegSpacing);
+        for (let i = 0; i < pegsInOutline; i++) {
+            const angle = (i / pegsInOutline) * 2 * Math.PI;
+            const x = centerX + maxRadius * Math.cos(angle);
+            const y = centerY + maxRadius * Math.sin(angle);
+            positions.push({ x, y });
+        }
 
-            updateBins() {
-                this.bins.fill(0);
-                const balls = Composite.allBodies(world).filter(body => !body.isStatic);
-                balls.forEach(ball => {
-                    if (ball.position.y >= this.height - this.bottomSpace) {
-                        const binIndex = Math.floor(ball.position.x / this.chuteWidth);
-                        if (binIndex >= 0 && binIndex < this.bins.length) {
-                            this.bins[binIndex]++;
-                        }
-                    }
-                });
+        // Fill the interior
+        for (let radius = maxRadius - this.pegSpacing; radius > 0; radius -= this.pegSpacing) {
+            const innerCircumference = 2 * Math.PI * radius;
+            const pegsInInnerCircle = Math.floor(innerCircumference / this.pegSpacing);
+            for (let i = 0; i < pegsInInnerCircle; i++) {
+                const angle = (i / pegsInInnerCircle) * 2 * Math.PI;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                positions.push({ x, y });
             }
         }
 
-        function createWorld() {
-            engine = Engine.create();
-            world = engine.world;
-            runner = Runner.create();
+        return positions;
+    }
+
+    getDiamondPegPositions() {
+        let positions = [];
+        const centerX = this.boardWidth / 2;
+        const centerY = this.height / 2 - this.bottomSpace / 2;
+        const maxSize = Math.min(this.boardWidth, this.height - this.bottomSpace - this.topSpace) * 0.8;
+
+        const createDiamondOutline = (size) => {
+            const pegsPerSide = Math.max(1, Math.floor(size / this.pegSpacing));
+            const outlinePositions = [];
+
+            for (let i = 0; i <= pegsPerSide; i++) {
+                const ratio = i / pegsPerSide;
+                // Top-right
+                outlinePositions.push({ x: centerX + ratio * size / 2, y: centerY - (1 - ratio) * size / 2 });
+                // Bottom-right
+                outlinePositions.push({ x: centerX + (1 - ratio) * size / 2, y: centerY + ratio * size / 2 });
+                // Bottom-left
+                outlinePositions.push({ x: centerX - ratio * size / 2, y: centerY + (1 - ratio) * size / 2 });
+                // Top-left
+                outlinePositions.push({ x: centerX - (1 - ratio) * size / 2, y: centerY - ratio * size / 2 });
+            }
+
+            return outlinePositions;
+        };
+
+        // Create the outline
+        positions = positions.concat(createDiamondOutline(maxSize));
+
+        // Fill the interior
+        for (let size = maxSize - this.pegSpacing * 2; size > 0; size -= this.pegSpacing * 2) {
+            positions = positions.concat(createDiamondOutline(size));
         }
 
-        function destroyWorld() {
-            if (runner) Runner.stop(runner);
-            if (render) Render.stop(render);
-            if (engine) Engine.clear(engine);
-            if (render && render.canvas) {
-                render.canvas.remove();
+        return positions;
+    }
+
+    getSquarePegPositions() {
+        let positions = [];
+        const centerX = this.boardWidth / 2;
+        const centerY = this.height / 2 - this.bottomSpace / 2;
+        const maxSize = Math.min(this.boardWidth, this.height - this.bottomSpace - this.topSpace) * 0.8;
+
+        const createSquareOutline = (size) => {
+            const pegsPerSide = Math.max(1, Math.floor(size / this.pegSpacing));
+            const outlinePositions = [];
+
+            for (let i = 0; i <= pegsPerSide; i++) {
+                const offset = i * (size / pegsPerSide);
+                // Top side
+                outlinePositions.push({ x: centerX - size / 2 + offset, y: centerY - size / 2 });
+                // Right side
+                outlinePositions.push({ x: centerX + size / 2, y: centerY - size / 2 + offset });
+                // Bottom side
+                outlinePositions.push({ x: centerX + size / 2 - offset, y: centerY + size / 2 });
+                // Left side
+                outlinePositions.push({ x: centerX - size / 2, y: centerY + size / 2 - offset });
             }
-            render = null;
-            engine = null;
-            world = null;
-            runner = null;
+
+            return outlinePositions;
+        };
+
+        // Create the outline
+        positions = positions.concat(createSquareOutline(maxSize));
+
+        // Fill the interior
+        for (let size = maxSize - this.pegSpacing * 2; size > 0; size -= this.pegSpacing * 2) {
+            positions = positions.concat(createSquareOutline(size));
         }
 
-		function initSimulation() {
-			destroyWorld();
-			createWorld();
-		
-			const boardHeight = parseInt(document.getElementById('boardHeightInput').value);
-			const numLevels = parseInt(document.getElementById('levelsInput').value);
-			const numBalls = parseInt(document.getElementById('ballsInput').value);
-			const ballMass = parseFloat(document.getElementById('massInput').value);
-			const gravity = parseFloat(document.getElementById('gravityInput').value);
-			const dropInterval = parseInt(document.getElementById('intervalInput').value);
-			const chuteHeight = parseInt(document.getElementById('chuteHeightInput').value);
-			const ballRadius = parseFloat(document.getElementById('ballRadiusInput').value);
-			const pegSpacing = parseInt(document.getElementById('pegSpacingInput').value);
-			const spaceBeforeChutes = parseInt(document.getElementById('spaceBeforeChutesInput').value);
-		
-			board = new GaltonBoard(boardHeight, numLevels, numBalls, ballMass, gravity, dropInterval, chuteHeight, ballRadius, pegSpacing, spaceBeforeChutes);
+        return positions;
+    }
 
-            engine.gravity.y = board.gravity;
-            const jigglePegs = document.getElementById('jigglePegs').checked;
-            if (jigglePegs) {
-                board.setupBoardRandom();
-            } else {
-                board.setupBoard();
 
-            }
-            const canvasContainer = document.getElementById('canvas-container');
-            canvasContainer.innerHTML = ''; // Clear previous canvas
+    createWall(x, y, width, height) {
+        const wall = Bodies.rectangle(x + width / 2, y + height / 2, width, height, { 
+            isStatic: true,
+            render: { fillStyle: '#222' }
+        });
+        Composite.add(world, wall);
+    }
 
-            render = Render.create({
-                element: canvasContainer,
-                engine: engine,
-                options: {
-                    width: board.boardWidth,
-                    height: board.height,
-                    wireframes: false,
-                    background: '#f0f0f0'
+    createPeg(x, y, radius) {
+        const peg = Bodies.circle(x, y, radius, { 
+            isStatic: true,
+            render: { fillStyle: '#222' }
+        });
+        Composite.add(world, peg);
+    }
+
+    createBall() {
+        if (this.ballsDropped >= this.numBalls) return;
+
+        const x = this.boardWidth / 2 + (Math.random() - 0.5) * 20;
+        const ballColor = this.useMultiColorBalls ? this.getRandomColor() : '#ff8800';
+        const ball = Bodies.circle(x, 20, this.ballRadius, {
+            restitution: 0.5,
+            friction: 0.001,
+            frictionAir: 0.0001,
+            mass: this.ballMass,
+            render: {
+                fillStyle: ballColor,
+                strokeStyle: this.darkenColor(ballColor, 20),
+                lineWidth: 1,
+                sprite: {
+                    texture: this.createBallTexture(ballColor)
                 }
-            });
-
-            Render.run(render);
-            Runner.run(runner, engine);
-
-            Events.on(engine, 'afterUpdate', afterUpdate);
-        }
-
-        function afterUpdate() {
-            if (!board || !render.context) return;
-
-            const currentTime = engine.timing.timestamp;
-            if (currentTime - lastDropTime >= board.dropInterval) {
-                board.createBall();
-                lastDropTime = currentTime;
             }
+        });
+        Composite.add(world, ball);
+        this.ballsDropped++;
+    }
+    
+    createBallTexture(color) {
+        const canvas = document.createElement('canvas');
+        const size = this.ballRadius * 2;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
 
-            board.updateBins();
+        // Create gradient
+        const gradient = ctx.createRadialGradient(size / 4, size / 4, 0, size / 2, size / 2, size / 2);
+        gradient.addColorStop(0, this.lightenColor(color, 30));
+        gradient.addColorStop(1, color);
 
-            // Draw blue bars for bin counts
-            const ctx = render.context;
-            
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = 'blue';
-            board.bins.forEach((count, index) => {
-                const barHeight = count * 2; // Increased bar growth rate
-                ctx.fillRect(index * board.chuteWidth, board.height - barHeight, board.chuteWidth, barHeight);
-            });
-            ctx.globalAlpha = 1;
+        // Draw circle
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
+        ctx.fillStyle = gradient;
+        ctx.fill();
 
-            // Draw ball count text
-            ctx.fillStyle = 'black';
-            ctx.font = '16px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(`Balls dropped: ${board.ballsDropped} / ${board.numBalls}`, board.boardWidth / 2, 20);
+        // Add highlight
+        ctx.beginPath();
+        ctx.arc(size / 4, size / 4, size / 6, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fill();
+
+        return canvas.toDataURL();
+    }
+
+    getRandomColor() {
+        return `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+    }
+
+    lightenColor(color, percent) {
+        const num = parseInt(color.replace("#",""), 16),
+              amt = Math.round(2.55 * percent),
+              R = (num >> 16) + amt,
+              G = (num >> 8 & 0x00FF) + amt,
+              B = (num & 0x0000FF) + amt;
+        return `#${(0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1)}`;
+    }
+
+    darkenColor(color, percent) {
+        const num = parseInt(color.replace("#",""), 16),
+              amt = Math.round(2.55 * percent),
+              R = (num >> 16) - amt,
+              G = (num >> 8 & 0x00FF) - amt,
+              B = (num & 0x0000FF) - amt;
+        return `#${(0x1000000 + (R>0?R:0)*0x10000 + (G>0?G:0)*0x100 + (B>0?B:0)).toString(16).slice(1)}`;
+    }
+
+    updateBins() {
+        this.bins.fill(0);
+        const balls = Composite.allBodies(world).filter(body => !body.isStatic);
+        balls.forEach(ball => {
+            if (ball.position.y >= this.height - this.bottomSpace) {
+                const binIndex = Math.floor(ball.position.x / this.chuteWidth);
+                if (binIndex >= 0 && binIndex < this.bins.length) {
+                    this.bins[binIndex]++;
+                }
+            }
+        });
+    }
+}
+
+ function createWorld() {
+    engine = Engine.create();
+    world = engine.world;
+    runner = Runner.create();
+}
+
+function destroyWorld() {
+    if (runner) Runner.stop(runner);
+    if (render) Render.stop(render);
+    if (engine) Engine.clear(engine);
+    if (render && render.canvas) {
+        render.canvas.remove();
+    }
+    render = null;
+    engine = null;
+    world = null;
+    runner = null;
+}
+
+function initSimulation() {
+    destroyWorld();
+    createWorld();
+
+    const boardHeight = parseInt(document.getElementById('boardHeightInput').value);
+    const numLevels = parseInt(document.getElementById('levelsInput').value);
+    const numBalls = parseInt(document.getElementById('ballsInput').value);
+    const ballMass = parseFloat(document.getElementById('massInput').value);
+    const gravity = parseFloat(document.getElementById('gravityInput').value);
+    const dropInterval = parseInt(document.getElementById('intervalInput').value);
+    const chuteHeight = parseInt(document.getElementById('chuteHeightInput').value);
+    const ballRadius = parseFloat(document.getElementById('ballRadiusInput').value);
+    const pegSpacing = parseInt(document.getElementById('pegSpacingInput').value);
+    const spaceBeforeChutes = parseInt(document.getElementById('spaceBeforeChutesInput').value);
+    const useMultiColorBalls = document.getElementById('useMultiColorBalls').checked;
+    const pegArrangement = document.getElementById('pegArrangementSelect').value;
+    const jigglePegs = document.getElementById('jigglePegs').checked;
+
+    board = new GaltonBoard(boardHeight, numLevels, numBalls, ballMass, gravity, dropInterval, chuteHeight, ballRadius, pegSpacing, spaceBeforeChutes, useMultiColorBalls, pegArrangement, jigglePegs);
+
+    engine.gravity.y = board.gravity;
+
+    const canvasContainer = document.getElementById('canvas-container');
+    canvasContainer.innerHTML = ''; // Clear previous canvas
+
+    render = Render.create({
+        element: canvasContainer,
+        engine: engine,
+        options: {
+            width: board.boardWidth,
+            height: board.height,
+            wireframes: false,
+            background: '#f0f0f0'
         }
+    });
 
-        function restartSimulation() {
-            lastDropTime = 0;
-            initSimulation();
-        }
+    // Setup the board (create walls, pegs, and chutes)
+    board.setupBoard();
 
-        document.getElementById('restartBtn').addEventListener('click', restartSimulation);
+    Render.run(render);
+    Runner.run(runner, engine);
 
-        // Initialize the simulation
-        initSimulation();
+    Events.on(engine, 'afterUpdate', afterUpdate);
+}
+
+function afterUpdate() {
+    if (!board || !render.context) return;
+
+    const currentTime = engine.timing.timestamp;
+    if (currentTime - lastDropTime >= board.dropInterval) {
+        board.createBall();
+        lastDropTime = currentTime;
+    }
+
+    board.updateBins();
+
+    // Draw blue bars for bin counts
+    const ctx = render.context;
+    
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = 'blue';
+    board.bins.forEach((count, index) => {
+        const barHeight = count * 2; // Increased bar growth rate
+        ctx.fillRect(index * board.chuteWidth, board.height - barHeight, board.chuteWidth, barHeight);
+    });
+    ctx.globalAlpha = 1;
+
+    // Draw ball count text
+    ctx.fillStyle = 'black';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Balls dropped: ${board.ballsDropped} / ${board.numBalls}`, board.boardWidth / 2, 20);
+}
+
+function restartSimulation() {
+    lastDropTime = 0;
+    initSimulation();
+}
+
+document.getElementById('restartBtn').addEventListener('click', restartSimulation);
+
+// Initialize the simulation when the page loads
+window.addEventListener('load', initSimulation);
     </script>
 </body>
 </html>
