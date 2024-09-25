@@ -143,9 +143,9 @@
                 <label for="pegArrangementSelect">Peg Arrangement:</label>
                 <select id="pegArrangementSelect">
                     <option value="triangle">Triangle</option>
-                    <option value="circle">Circle</option>
                     <option value="diamond">Diamond</option>
-                    <option value="square">Square</option>
+                    <option value="house">House</option>
+                    <option value="random">Random</option>
                 </select>
             </div>
             <div class="input-group">
@@ -240,12 +240,12 @@ class GaltonBoard {
         switch (this.pegArrangement) {
             case 'triangle':
                 return this.getTrianglePegPositions();
-            case 'circle':
-                return this.getCirclePegPositions();
             case 'diamond':
                 return this.getDiamondPegPositions();
-            case 'square':
-                return this.getSquarePegPositions();
+            case 'house':
+                return this.getHousePegPositions();
+            case 'random':
+                return this.getRandomPegPositions();
             default:
                 return this.getTrianglePegPositions();
         }
@@ -278,108 +278,74 @@ class GaltonBoard {
         return positions;
     }
 
- getCirclePegPositions() {
-        let positions = [];
-        const centerX = this.boardWidth / 2;
-        const centerY = this.height / 2 - this.bottomSpace / 2;
-        const maxRadius = Math.min(this.boardWidth, this.height - this.bottomSpace - this.topSpace) / 2 * 0.8;
+ getDiamondPegPositions() {
+    let positions = [];
+    const centerX = this.boardWidth / 2;
+    const centerY = this.height / 2 - this.bottomSpace / 2;
+    const maxDots = Math.floor(this.numLevels / 2) + 1;
 
-        // Create the outline
-        const circumference = 2 * Math.PI * maxRadius;
-        const pegsInOutline = Math.floor(circumference / this.pegSpacing);
-        for (let i = 0; i < pegsInOutline; i++) {
-            const angle = (i / pegsInOutline) * 2 * Math.PI;
-            const x = centerX + maxRadius * Math.cos(angle);
-            const y = centerY + maxRadius * Math.sin(angle);
+    for (let row = 0; row < this.numLevels; row++) {
+        const numDots = row < maxDots ? row + 1 : this.numLevels - row;
+        for (let col = 0; col < numDots; col++) {
+            const x = centerX + (col - (numDots - 1) / 2) * this.pegSpacing;
+            const y = this.topSpace + row * this.verticalSpacing;
             positions.push({ x, y });
         }
+    }
 
-        // Fill the interior
-        for (let radius = maxRadius - this.pegSpacing; radius > 0; radius -= this.pegSpacing) {
-            const innerCircumference = 2 * Math.PI * radius;
-            const pegsInInnerCircle = Math.floor(innerCircumference / this.pegSpacing);
-            for (let i = 0; i < pegsInInnerCircle; i++) {
-                const angle = (i / pegsInInnerCircle) * 2 * Math.PI;
-                const x = centerX + radius * Math.cos(angle);
-                const y = centerY + radius * Math.sin(angle);
-                positions.push({ x, y });
+    return positions;
+}
+
+getHousePegPositions() {
+    let positions = [];
+    const centerX = this.boardWidth / 2;
+    const maxColumns = Math.ceil(this.numLevels / 2); // Reduce the maximum number of columns
+
+    for (let row = 0; row < this.numLevels; row++) {
+        const numDots = Math.min(row + 1, maxColumns);
+        for (let col = 0; col < numDots; col++) {
+            const x = centerX + (col - (numDots - 1) / 2) * this.pegSpacing;
+            const y = this.topSpace + row * this.verticalSpacing;
+            positions.push({ x, y });
+        }
+    }
+
+    return positions;
+}
+
+getRandomPegPositions() {
+    let positions = [];
+    const centerX = this.boardWidth / 2;
+    const maxColumns = Math.ceil(this.numLevels / 2);
+    const minX = centerX - (maxColumns - 1) * this.pegSpacing / 2;
+    const maxX = centerX + (maxColumns - 1) * this.pegSpacing / 2;
+    const minDistance = this.ballRadius * 2.5; // Minimum distance between pegs
+
+    for (let row = 0; row < this.numLevels; row++) {
+        const y = this.topSpace + row * this.verticalSpacing;
+        const numPegs = Math.floor(Math.random() * (maxColumns + 1)); // Random number of pegs per row
+        let rowPositions = [];
+
+        for (let i = 0; i < numPegs; i++) {
+            let x, attempts = 0;
+            do {
+                x = Math.random() * (maxX - minX) + minX;
+                attempts++;
+            } while (
+                rowPositions.some(pos => Math.hypot(pos.x - x, pos.y - y) < minDistance) &&
+                attempts < 100
+            );
+
+            if (attempts < 100) {
+                rowPositions.push({ x, y });
             }
         }
 
-        return positions;
+        positions.push(...rowPositions);
     }
 
-    getDiamondPegPositions() {
-        let positions = [];
-        const centerX = this.boardWidth / 2;
-        const centerY = this.height / 2 - this.bottomSpace / 2;
-        const maxSize = Math.min(this.boardWidth, this.height - this.bottomSpace - this.topSpace) * 0.8;
-
-        const createDiamondOutline = (size) => {
-            const pegsPerSide = Math.max(1, Math.floor(size / this.pegSpacing));
-            const outlinePositions = [];
-
-            for (let i = 0; i <= pegsPerSide; i++) {
-                const ratio = i / pegsPerSide;
-                // Top-right
-                outlinePositions.push({ x: centerX + ratio * size / 2, y: centerY - (1 - ratio) * size / 2 });
-                // Bottom-right
-                outlinePositions.push({ x: centerX + (1 - ratio) * size / 2, y: centerY + ratio * size / 2 });
-                // Bottom-left
-                outlinePositions.push({ x: centerX - ratio * size / 2, y: centerY + (1 - ratio) * size / 2 });
-                // Top-left
-                outlinePositions.push({ x: centerX - (1 - ratio) * size / 2, y: centerY - ratio * size / 2 });
-            }
-
-            return outlinePositions;
-        };
-
-        // Create the outline
-        positions = positions.concat(createDiamondOutline(maxSize));
-
-        // Fill the interior
-        for (let size = maxSize - this.pegSpacing * 2; size > 0; size -= this.pegSpacing * 2) {
-            positions = positions.concat(createDiamondOutline(size));
-        }
-
-        return positions;
-    }
-
-    getSquarePegPositions() {
-        let positions = [];
-        const centerX = this.boardWidth / 2;
-        const centerY = this.height / 2 - this.bottomSpace / 2;
-        const maxSize = Math.min(this.boardWidth, this.height - this.bottomSpace - this.topSpace) * 0.8;
-
-        const createSquareOutline = (size) => {
-            const pegsPerSide = Math.max(1, Math.floor(size / this.pegSpacing));
-            const outlinePositions = [];
-
-            for (let i = 0; i <= pegsPerSide; i++) {
-                const offset = i * (size / pegsPerSide);
-                // Top side
-                outlinePositions.push({ x: centerX - size / 2 + offset, y: centerY - size / 2 });
-                // Right side
-                outlinePositions.push({ x: centerX + size / 2, y: centerY - size / 2 + offset });
-                // Bottom side
-                outlinePositions.push({ x: centerX + size / 2 - offset, y: centerY + size / 2 });
-                // Left side
-                outlinePositions.push({ x: centerX - size / 2, y: centerY + size / 2 - offset });
-            }
-
-            return outlinePositions;
-        };
-
-        // Create the outline
-        positions = positions.concat(createSquareOutline(maxSize));
-
-        // Fill the interior
-        for (let size = maxSize - this.pegSpacing * 2; size > 0; size -= this.pegSpacing * 2) {
-            positions = positions.concat(createSquareOutline(size));
-        }
-
-        return positions;
-    }
+    return positions;
+}
 
 
     createWall(x, y, width, height) {
